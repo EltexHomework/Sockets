@@ -61,6 +61,11 @@ void process_input(struct client* client) {
 
     /* Receive answer */
     char* message = recv_message(client);
+    if (message == NULL) {
+      close_connection(client);
+      break;
+    }
+
     printf("SERVER: Server %s send response: %s\n", client->serv.sun_path, message);
     free(message);
   }
@@ -145,11 +150,29 @@ char* recv_message(struct client* client) {
 }
 
 /*
- * close_connection - used to close connection with server.
+ * shutdown_connection - used to close connection with server.
  * Calls shutdown which sends EOF to socket. Server closes
  * conenction from its side.
  * @client - pointer to an object of client struct
  */
-void close_connection(struct client* client) {
+void shutdown_connection(struct client* client) {
   shutdown(client->sfd, SHUT_RDWR);
+}
+
+/*
+ * close_connection - used to close connection with close
+ * call.
+ * @client - pointer to an object of client struct
+ */
+void close_connection(struct client* client) {
+  close(client->sfd);
+}
+
+/*
+ * free_client - used to free allocated memory for client
+ * object.
+ * @client - pointer to an object of client struct
+ */
+void free_client(struct client* client) {
+  free(client);
 }

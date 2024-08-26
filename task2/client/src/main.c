@@ -6,13 +6,13 @@ struct client* client;
 void cleanup();
 
 int main(void) {
-  client = create_client(SOCK_PATH);
+  client = create_client(CLIENT_SOCK_PATH, SERV_SOCK_PATH);
   atexit(cleanup);
   run_client(client);
   exit(EXIT_SUCCESS);
 }
 
 void cleanup() {
-  shutdown_connection(client);
+  close_connection(client);
   free_client(client);
 }

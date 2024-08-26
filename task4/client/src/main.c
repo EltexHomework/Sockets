@@ -1,12 +1,11 @@
 #include "../headers/client.h"
-#include <sys/socket.h>
 
 struct client* client;
 
 void cleanup();
 
 int main(void) {
-  client = create_client(SOCK_PATH);
+  client = create_client(SERVER_IP, SERVER_PORT);
   atexit(cleanup);
   run_client(client);
   exit(EXIT_SUCCESS);

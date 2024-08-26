@@ -1,6 +1,4 @@
 #include "../headers/server.h"
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 /*
  * create_server - used to create an object of server
@@ -9,15 +7,16 @@
  *
  * Return: pointer to an object of server struct 
  */
-struct server* create_server(const char* path) {
+struct server* create_server(const char* ip, const int port) {
   struct server* server = (struct server*) malloc(sizeof(struct server));
   if (!server)
     print_error("malloc");
 
   /* Initialzie sockaddr_un struct */
-  server->serv.sun_family = AF_LOCAL;
-  strncpy(server->serv.sun_path, path, sizeof(server->serv.sun_path) - 1);
-  
+  server->serv.sin_family = AF_INET;
+  server->serv.sin_addr.s_addr = inet_addr(ip); 
+  server->serv.sin_port = htons(port);
+
   /* Initialize clients array */
   server->clients_amount = 0;
   server->clients = (struct client**) malloc(CLIENTS_AMOUNT * sizeof(struct client*));
@@ -25,7 +24,7 @@ struct server* create_server(const char* path) {
     print_error("malloc");
 
   /* Create a socket */
-  server->sfd = socket(AF_LOCAL, SOCK_STREAM, 0);
+  server->sfd = socket(AF_INET, SOCK_STREAM, 0);
   if (server->sfd == -1)
     print_error("socket");
 
@@ -38,7 +37,7 @@ struct server* create_server(const char* path) {
  * @server - pointer to an object of server struct
  */
 void run_server(struct server* server) {
-  struct sockaddr_un client;
+  struct sockaddr_in client;
   socklen_t client_size = sizeof(client);
 
   /* Bind Endpoint to socket */
@@ -49,7 +48,9 @@ void run_server(struct server* server) {
   if (listen(server->sfd, CLIENTS_AMOUNT) == -1)
     print_error("listen");
   
-  printf("SERVER: Server %s started\n", server->serv.sun_path);
+  struct endpoint* serv_ep = addr_to_endpoint(&server->serv); 
+  printf("SERVER: Server %s:%d started\n", serv_ep->ip, serv_ep->port);
+  free(serv_ep);
 
   /* Accept connections */
   while (1) {
@@ -66,8 +67,10 @@ void run_server(struct server* server) {
     } 
     /* Message received */
     else {
-      printf("SERVER: Client %s connected\n", client.sun_path);
-      add_client(server, &client, client_fd);   
+      struct endpoint* client_ep = addr_to_endpoint(&client); 
+      printf("SERVER: Client %s:%d connected\n", client_ep->ip, client_ep->port);
+      add_client(server, &client, client_fd);
+      free(client_ep);
     }
   }
 }
@@ -79,7 +82,7 @@ void run_server(struct server* server) {
  * @client_addr - pointer to an object of sockaddr_un struct  
  * client_fd - descriptor for communication with client
  */
-void add_client(struct server* server, struct sockaddr_un* client_addr, int client_fd) {
+void add_client(struct server* server, struct sockaddr_in* client_addr, int client_fd) {
   /* Check if server is full */
   if (server->clients_amount == CLIENTS_AMOUNT)
     return;
@@ -91,6 +94,7 @@ void add_client(struct server* server, struct sockaddr_un* client_addr, int clie
   client->fd = client_fd;
   client->id = server->clients_amount;
   client->server = server;
+  client->endpoint = addr_to_endpoint(client_addr);
 
   /* Create thread for client */
   if (pthread_create(&client->thread, NULL, handle_client_connection, (void *) client) != 0)
@@ -114,6 +118,7 @@ void delete_client(struct server* server, struct client* client) {
   for (i = 0; i < server->clients_amount; i++) {
     if (server->clients[i]->id == client->id) {
       free(server->clients[i]);
+      break;
     } 
   }
 
@@ -137,6 +142,7 @@ void delete_client(struct server* server, struct client* client) {
 void* handle_client_connection(void* arg) {
   /* Cast arg to client struct*/
   struct client* client = (struct client*) arg;
+
   char buffer[BUFFER_SIZE];
   int bytes_read;
   
@@ -144,13 +150,13 @@ void* handle_client_connection(void* arg) {
     char* message = recv_message(client);
     /* Connection closed */
     if (message == NULL) {
-      printf("SERVER: Client %s disconnected\n", client->addr->sun_path);
+      printf("SERVER: Client %s:%d disconnected\n", client->endpoint->ip, client->endpoint->port);
       close_connection(client);
       break;
     }
     
     /* Log message */
-    printf("SERVER: Received message from client %s: %s\n", client->addr->sun_path, message);
+    printf("SERVER: Received message from client %s:%d: %s\n", client->endpoint->ip, client->endpoint->port, message);
 
     /* Edit message */
     char* new_message = edit_message(message);
@@ -288,6 +294,7 @@ void close_connection(struct client* client) {
 void free_server(struct server* server) {
   for (int i = 0; i < server->clients_amount; i++) {
     shutdown_connection(server->clients[i]);
+    free(server->clients[i]->endpoint);
     free(server->clients[i]);
   }
   free(server->clients);
