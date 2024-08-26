@@ -12,5 +12,6 @@ int main(void) {
 }
 
 void cleanup() {
-  free_server(server);  
+  close_connection(server);
+  free_server(server); 
 }

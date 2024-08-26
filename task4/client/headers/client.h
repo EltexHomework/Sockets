@@ -2,19 +2,15 @@
 #define CLIENT_H
 
 #include "../../common/headers/common.h"
-#include "../../common/headers/endpoint.h"
 
 /*
- * Used as client for connection to local address
- * family (AF_LOCAL) server via UDP protocol. 
+ * Used as client for connection to inet address
+ * family (AF_INET) server via UDP protocol. 
  */
 struct client {
-  /* Adress of the server */
-  struct sockaddr_un serv;
+  /* Address of the server */
+  struct sockaddr_in serv;
   
-  /* IP and port of server */
-  struct endpoint* serv_endpoint;
-
   /* Server file descriptor*/
   int sfd;
 };
@@ -25,14 +21,12 @@ void run_client(struct client* client);
 
 void process_input(struct client* client);
 
-void send_message(struct client* client, const char* buffer);
+void send_message(struct client* client, char buffer[BUFFER_SIZE]);
 
 char* recv_message(struct client* client);
-
-void shutdown_connection(struct client* client);
 
 void close_connection(struct client* client);
 
 void free_client(struct client* client);
-  
+
 #endif // !CLIENT_H

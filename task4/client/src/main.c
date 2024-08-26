@@ -12,6 +12,6 @@ int main(void) {
 }
 
 void cleanup() {
-  shutdown_connection(client);
+  close_connection(client);
   free_client(client);
 }

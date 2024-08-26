@@ -57,9 +57,9 @@ void run_server(struct server* server) {
 }
 
 /*
- * send_message - used to send message to client. First
- * sends length of the buffer, then sends the message.
- * @client - pointer to an object of client struct 
+ * send_message - used to send message to client.
+ * @server - pointer to an object of server struct
+ * @client - address of client (sockaddr_un)
  * @buffer - message
  */
 void send_message(struct server* server, struct sockaddr_un* client, char buffer[BUFFER_SIZE]) {
@@ -78,6 +78,8 @@ void send_message(struct server* server, struct sockaddr_un* client, char buffer
  * recv_message - used to receive message from server.
  * allocates memory for message, then receives it all. Allocated
  * buffer must be freed manually.
+ * @server - pointer to an object of server struct
+ * @client - address of client (sockaddr_un)
  *
  * Return: string (message) if successful, NULL if connection terminated
  */
