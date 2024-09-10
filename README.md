@@ -23,11 +23,11 @@ make clean
 ![task1](https://github.com/user-attachments/assets/7f8da4ae-c8ed-4f50-b1b0-d566d41a2c11)
 
 2) Семейство AF_LOCAL. Протокол UDP.
-![task2](https://github.com/user-attachments/assets/3c188c87-ede4-4277-ab1f-7d2555f43cb4)
+![sock_task2](https://github.com/user-attachments/assets/18c07440-59df-4361-b855-ec588d21d444)
 
 3) Семейство AF_INET. Протокол TCP.
 ![task3](https://github.com/user-attachments/assets/7bacda80-83df-4de7-a53d-65152208539d)
 
 4) Семейство AF_INET. Протокол UDP.
-![task4](https://github.com/user-attachments/assets/1c91404f-6585-4092-9459-2d14172f1f52)
+![sock_task4](https://github.com/user-attachments/assets/e579b30d-840e-466d-a533-f042c6aaf799)
 
